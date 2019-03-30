@@ -12,8 +12,8 @@ class TestDecisionTree(unittest.TestCase):
         self.dt = DecisionTree(self.params)
 
 
-    def test_train(self):
-        clf = self.dt.train(self.train_data, self.train_labels)
+    def test_fit(self):
+        clf = self.dt.fit(self.train_data, self.train_labels)
 
     def test_entropy(self):
         labels_1 = np.array([0, 0, 0, 0])
@@ -82,6 +82,21 @@ class TestDecisionTree(unittest.TestCase):
         max_info_gain, best_split_rule = self.dt.find_best_split(test_data, test_labels)
         print(max_info_gain)
         print(best_split_rule)
+
+    def test_build_tree(self):
+        test_data = np.array([
+            [0, 1, 5],
+            [0, 3, 5],
+            [3, 5, 6],
+            [0, 3, 5]
+        ])
+        test_labels = np.array([0, 0, 0, 1])
+
+        root = self.dt.build_tree(test_data, test_labels)
+        self.dt.print_tree_helper(root)
+
+
+        #Test build tree with max_depth.
 
 
 
