@@ -2,6 +2,8 @@ import scipy.stats
 import numpy as np
 from collections import Counter
 from core.types.split_rule import SplitRule
+from core.types.leaf_node import LeafNode
+from core.types.internal_node import InternalNode
 
 class DecisionTree(object):
     def __init__(self, max_depth = None, header=None):
@@ -9,16 +11,34 @@ class DecisionTree(object):
         self._root = None
         self._header = header
 
-    def train(self, X, y):
+    def fit(self, X, y):
         self._X_train = X
         self._y_train = y
+
+    def predict(self, Samples):
+        #create predictions for a list of samples
+        pass
+
+    def build_tree(self, samples, labels):
+        info_gain, split_rule = self.find_best_split(samples, labels)
+
+        if info_gain == 0:
+            return LeafNode(labels)
+
+        else:
+            true_samples, true_labels, false_samples, false_labels = self.split(samples, labels, split_rule)
+
+            true_child = self.build_tree(true_samples, true_labels)
+
+            false_child = self.build_tree(false_samples, false_labels)
+
+            return InternalNode(true_child, false_child, split_rule)
 
     @staticmethod
     def entropy(labels):
         n = len(labels)
-        prob_dist = [ v/n for v in Counter(labels).values()]
+        prob_dist = [v / n for v in Counter(labels).values()]
         return scipy.stats.entropy(pk=prob_dist, base=2)
-
 
     @staticmethod
     def split(samples, labels, split_rule):
@@ -59,6 +79,12 @@ class DecisionTree(object):
 
 
     def find_best_split(self, samples, labels):
+        """
+        Finds the best split by maximizing information gain.
+        :param samples:
+        :param labels:
+        :return:
+        """
         assert len(samples) > 0
         assert len(samples) == len(labels)
 
@@ -85,6 +111,33 @@ class DecisionTree(object):
                     best_split_rule = cur_split_rule
 
         return max_info_gain, best_split_rule
+
+    def print_tree(self):
+        """
+        function borrwod from here:
+        :return:
+        """
+        self.print_tree_helper(self._root)
+
+    @staticmethod
+    def print_tree_helper(node, spacing=""):
+
+        # Base case: we've reached a leaf
+        if isinstance(node, LeafNode):
+            print(spacing + "Predict", node.prediction())
+            print(spacing + "Predict", node.class_counts)
+            return
+
+        # Print the question at this node
+        print(spacing + str(node.split_rule))
+
+        # Call this function recursively on the true branch
+        print(spacing + '--> True:')
+        DecisionTree.print_tree_helper(node.true_child, spacing + "  ")
+
+        # Call this function recursively on the false branch
+        print(spacing + '--> False:')
+        DecisionTree.print_tree_helper(node.false_child, spacing + "  ")
 
 
 
