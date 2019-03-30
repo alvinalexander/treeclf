@@ -70,6 +70,21 @@ class TestDecisionTree(unittest.TestCase):
         print(information_gain_2)
         self.assertEqual(information_gain_2, 0)
 
+    def test_find_best_split(self):
+        test_data = np.array([
+            [0, 1, 5],
+            [0, 3, 5],
+            [3, 5, 6],
+            [0, 3, 5]
+        ])
+        test_labels = np.array([0, 0, 0, 1])
+
+        max_info_gain, best_split_rule = self.dt.find_best_split(test_data, test_labels)
+        print(max_info_gain)
+        print(best_split_rule)
+
+
+
 
 
 if __name__ == '__main__':

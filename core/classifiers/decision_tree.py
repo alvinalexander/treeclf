@@ -4,9 +4,10 @@ from collections import Counter
 from core.types.split_rule import SplitRule
 
 class DecisionTree(object):
-    def __init__(self, max_depth = None):
+    def __init__(self, max_depth = None, header=None):
         self._max_depth = max_depth
         self._root = None
+        self._header = header
 
     def train(self, X, y):
         self._X_train = X
@@ -55,5 +56,36 @@ class DecisionTree(object):
         entropy_true, entropy_false = self.entropy(true_labels), self.entropy(false_labels)
         size_true, size_false = len(true_labels), len(false_labels)
         return current_entropy - (size_true * entropy_true + size_false * entropy_false) / n
+
+
+    def find_best_split(self, samples, labels):
+        assert len(samples) > 0
+        assert len(samples) == len(labels)
+
+        num_samples = len(samples)
+        num_features = len(samples[0])
+        max_info_gain = 0
+        best_split_rule = None
+
+        for i in range(num_features):
+            values = set([sample[i] for sample in samples])
+            for v in values:
+                cur_split_rule = SplitRule(i, v)
+
+                true_samples, true_labels, false_samples, false_labels = self.split(samples, labels, cur_split_rule)
+
+                #Ignore if split rule does not partition the data set.
+                if len(true_samples) == 0 or len(false_samples) == 0:
+                    continue
+
+                cur_info_gain = self.information_gain(i, v, samples, labels)
+
+                if cur_info_gain >= max_info_gain:
+                    max_info_gain = cur_info_gain
+                    best_split_rule = cur_split_rule
+
+        return max_info_gain, best_split_rule
+
+
 
 
