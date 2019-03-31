@@ -6,31 +6,55 @@ from core.types.leaf_node import LeafNode
 from core.types.internal_node import InternalNode
 
 class DecisionTree(object):
-    def __init__(self, max_depth = None, header=None):
-        self._max_depth = max_depth
-        self._root = None
-        self._header = header
+    def __init__(self, max_depth= -1, header=None):
+        self.max_depth = max_depth
+        self.root = None
+        self.header = header
 
-    def fit(self, X, y):
+    def train(self, X, y):
         self._X_train = X
         self._y_train = y
+        self.root = self.build_tree(X, y)
 
-    def predict(self, Samples):
+    def predict(self, X):
         #create predictions for a list of samples
-        pass
+        assert self.root != None
 
-    def build_tree(self, samples, labels):
+        res = []
+        for x in X:
+            res.append(self.classify(x))
+
+        return np.array(res)
+
+    def classify(self, x):
+        """
+        Classify a single sample point
+        :param x:
+        :return:
+        """
+        def classification_helper(x, node):
+            if isinstance(node, LeafNode):
+                return node.prediction()
+
+            if node.split_rule.match(x):
+                return classification_helper(x, node.true_child)
+            else:
+                return classification_helper(x, node.false_child)
+
+        return classification_helper(x, self.root)
+
+    def build_tree(self, samples, labels, depth=1):
         info_gain, split_rule = self.find_best_split(samples, labels)
 
-        if info_gain == 0:
+        if info_gain == 0 or depth == self.max_depth:
             return LeafNode(labels)
 
         else:
             true_samples, true_labels, false_samples, false_labels = self.split(samples, labels, split_rule)
 
-            true_child = self.build_tree(true_samples, true_labels)
+            true_child = self.build_tree(true_samples, true_labels, depth + 1)
 
-            false_child = self.build_tree(false_samples, false_labels)
+            false_child = self.build_tree(false_samples, false_labels, depth + 1)
 
             return InternalNode(true_child, false_child, split_rule)
 
@@ -117,7 +141,7 @@ class DecisionTree(object):
         function borrwod from here:
         :return:
         """
-        self.print_tree_helper(self._root)
+        self.print_tree_helper(self.root)
 
     @staticmethod
     def print_tree_helper(node, spacing=""):
