@@ -31,7 +31,7 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         X = check_array(X)
         return self.dt.predict(X)
 
-    def pint_tree(self):
+    def print_tree(self):
         if self.dt != None:
             self.dt.print_tree()
 
