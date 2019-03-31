@@ -2,18 +2,41 @@ import unittest
 import numpy as np
 from core.classifiers.decision_tree import DecisionTree
 from core.types.split_rule import SplitRule
+from core.types.leaf_node import LeafNode
+
 class TestDecisionTree(unittest.TestCase):
     def setUp(self):
-        self.train_data, self.train_labels, self.test_data, self.test_labels = (np.array([]), np.array([]),
-                                                                                np.array([]), np.array([]))
-        self.params = {
-            'max_depth': 1,
-        }
-        self.dt = DecisionTree(self.params)
+        self.train_data = np.array([
+            [0, 1, 5],
+            [0, 3, 5],
+            [3, 5, 6],
+            [0, 3, 5]
+        ])
+        self.train_labels = np.array([0, 1, 0, 3])
 
+        self.dt = DecisionTree()
+        self.dt.train(self.train_data, self.train_labels)
+        print("===== INITIAL TREE =====")
+        self.dt.print_tree()
 
-    def test_fit(self):
-        clf = self.dt.fit(self.train_data, self.train_labels)
+    def test_predict(self):
+        """
+        Test that the predict methods works as expected.
+        :return:
+        """
+        data = np.array([
+            [1, 1, 5],
+            [4, 3, 5],
+            [5, 5, 6],
+            [3, 6, 10]
+        ])
+        predictions = self.dt.predict(data)
+        self.assertEqual(len(predictions), len(data))
+        for p in predictions:
+            self.assertTrue(p in set(self.train_labels))
+
+        print("Predictins", predictions)
+
 
     def test_entropy(self):
         labels_1 = np.array([0, 0, 0, 0])
@@ -22,15 +45,6 @@ class TestDecisionTree(unittest.TestCase):
         self.assertEqual(self.dt.entropy(labels_1), 0)
         self.assertEqual(self.dt.entropy(labels_2), 1)
         self.assertEqual(self.dt.entropy(labels_3), 2)
-
-    def test_information_gain(self):
-        test_data = np.array([
-            [0, 1, 5],
-            [0, 3, 5],
-            [3, 5, 6],
-            [0, 3, 5]
-        ])
-        test_labels = np.array([0, 1, 0, 1])
 
     def test_split(self):
         test_data = np.array([
@@ -80,10 +94,17 @@ class TestDecisionTree(unittest.TestCase):
         test_labels = np.array([0, 0, 0, 1])
 
         max_info_gain, best_split_rule = self.dt.find_best_split(test_data, test_labels)
-        print(max_info_gain)
-        print(best_split_rule)
+        #print(max_info_gain)
+        #print(best_split_rule)
 
     def test_build_tree(self):
+        def max_depth(tree):
+            if isinstance(tree, LeafNode):
+                return 1
+            else:
+                return 1 + max(max_depth(tree.true_child), max_depth(tree.false_child))
+
+
         test_data = np.array([
             [0, 1, 5],
             [0, 3, 5],
@@ -95,9 +116,15 @@ class TestDecisionTree(unittest.TestCase):
         root = self.dt.build_tree(test_data, test_labels)
         self.dt.print_tree_helper(root)
 
+        #test max_depth
+        self.dt.max_depth = 1
+        root = self.dt.build_tree(test_data, test_labels)
+        self.dt.print_tree_helper(root)
+        self.assertLessEqual(max_depth(root), 1)
 
-        #Test build tree with max_depth.
 
+        #Todo Test build tree with max_depth.
+        #TODO: fit and predict.
 
 
 
